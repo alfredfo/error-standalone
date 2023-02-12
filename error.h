@@ -10,6 +10,12 @@
 #include <string.h>
 #include <errno.h>
 
+#if defined(__GNUC__) && defined(__has_builtin)
+# if __has_builtin(__builtin_va_arg_pack)
+#  define HAS_BUILTIN_VA_ARG_PACK
+# endif
+#endif
+
 static unsigned int error_message_count = 0;
 
 static inline void error(int status, int errnum, const char* format, ...)
@@ -18,11 +24,17 @@ static inline void error(int status, int errnum, const char* format, ...)
 	 * stick with fflush(NULL) for simplicity (glibc checks if the fd is still valid) */
 	fflush(NULL);
 
-	va_list ap;
 	fprintf(stderr, "%s: ", program_invocation_name);
+
+	#ifdef HAS_BUILTIN_VA_ARG_PACK
+	fprintf(stderr, format, __builtin_va_arg_pack());
+	#else
+	va_list ap;
 	va_start(ap, format);
 	vfprintf(stderr, format, ap);
 	va_end(ap);
+	#endif
+
 	if (errnum)
 		fprintf(stderr, ": %s", strerror(errnum));
 	fprintf(stderr, "\n");
@@ -36,7 +48,6 @@ static int error_one_per_line = 0;
 static inline void error_at_line(int status, int errnum, const char *filename,
 		unsigned int linenum, const char *format, ...)
 {
-	va_list ap;
 	if (error_one_per_line) {
 		static const char *old_filename;
 		static int old_linenum;
@@ -45,10 +56,18 @@ static inline void error_at_line(int status, int errnum, const char *filename,
 		old_filename = filename;
 		old_linenum = linenum;
 	}
+
 	fprintf(stderr, "%s: %s:%u: ", program_invocation_name, filename, linenum);
+
+	#ifdef HAS_BUILTIN_VA_ARG_PACK
+	fprintf(stderr, format, __builtin_va_arg_pack());
+	#else
+	va_list ap;
 	va_start(ap, format);
 	vfprintf(stderr, format, ap);
 	va_end(ap);
+	#endif
+
 	if (errnum)
 		fprintf(stderr, ": %s", strerror(errnum));
 	fprintf(stderr, "\n");
