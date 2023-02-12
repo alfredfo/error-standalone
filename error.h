@@ -16,9 +16,19 @@
 # endif
 #endif
 
+#if defined __has_attribute
+#  if __has_attribute (always_inline)
+#    define ATTR_ALWAYS_INLINE __attribute__((always_inline))
+#  endif
+#endif
+
+#ifndef ATTR_ALWAYS_INLINE
+# define ATTR_ALWAYS_INLINE
+#endif
+
 static unsigned int error_message_count = 0;
 
-static inline void error(int status, int errnum, const char* format, ...)
+static ATTR_ALWAYS_INLINE inline void error(int status, int errnum, const char* format, ...)
 {
 	/* should be fflush(stdout), but that's unspecified if stdout has been closed;
 	 * stick with fflush(NULL) for simplicity (glibc checks if the fd is still valid) */
@@ -45,7 +55,7 @@ static inline void error(int status, int errnum, const char* format, ...)
 
 static int error_one_per_line = 0;
 
-static inline void error_at_line(int status, int errnum, const char *filename,
+static ATTR_ALWAYS_INLINE inline void error_at_line(int status, int errnum, const char *filename,
 		unsigned int linenum, const char *format, ...)
 {
 	if (error_one_per_line) {
