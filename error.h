@@ -3,6 +3,7 @@
 #ifndef _ERROR_H_
 #define _ERROR_H_
 
+#define _GNU_SOURCE /* Needed for program_invocation_name */
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
